@@ -85,7 +85,7 @@ class TradeModel:
 
         if trade_decision == 'sell': # sell at bid price? 
             trade_amt = self.trade_limit * self.btc_bal
-            trade_price = current_market['bid']
+            trade_price = float(current_market['bid'])
             if self.btc_bal > 0:
                 self.btc_bal -= trade_amt
                 usdc_amt = trade_amt * trade_price 
@@ -95,7 +95,7 @@ class TradeModel:
         
         elif trade_decision == 'buy': # buy at ask price?
             trade_amt = self.trade_limit * self.usdc_bal
-            trade_price = current_market['ask']
+            trade_price = float(current_market['ask'])
             if self.usdc_bal > 0:
                 self.usdc_bal -= (trade_amt + trade_amt*self.fees)  
                 self.btc_bal += trade_amt/trade_price

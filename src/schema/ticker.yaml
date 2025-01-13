@@ -1,0 +1,183 @@
+
+
+kraken_ticker:
+  description: Compiled ticker information from kraken api
+  columns:
+    snapshot_ts:
+      dtype: ts
+      ttype: timestamp
+      description: timestamp of snapshot
+      meta: 
+        api: None
+    
+    time_since_open: 
+      dtype: int64
+      ttype: bigint
+      description: time since market open (seconds). UTC midnight
+      meta: 
+        api: None
+    pair:
+      dtype: str
+      ttype: text
+      description: currency pair
+      meta: 
+        api: None
+    
+    ask_price:
+      dtype: float64
+      ttype: decimal
+      description: asking price at timestamp
+      meta:
+        api: Ticker
+        param: a
+        position: 0
+
+    bid_price:
+      dtype: float64
+      ttype: decimal
+      description: bid price at timestamp
+      meta:
+        api: Ticker
+        param: b
+        position: 0
+    
+    last_trade_closed:
+      dtype: float64
+      ttype: decimal
+      description: last closed trade price 
+      meta:
+        api: Ticker
+        param: c
+        position:  0
+        
+    last_trade_lot_vol:
+      dtype: float64
+      ttype: decimal
+      description: last closed trade volume
+      meta:
+        api: Ticker
+        param: c
+        position: 1
+
+    volume_today:
+      dtype: float64
+      ttype: decimal
+      description: today's volume 
+      meta:
+        api: Ticker
+        param: v
+        position: 0
+
+    volume_24h:
+      dtype: float64
+      ttype: decimal
+      description: volume over last 24h
+      meta:
+        api: Ticker
+        param: v
+        position: 1
+
+    volume_wt_price_today:
+      dtype: float64
+      ttype: decimal
+      description: volume weighted price today 
+      meta:
+        api: Ticker
+        param: p
+        position: 0
+    
+    volume_wt_price_24h:
+      dtype: float64
+      ttype: decimal
+      description: volume weighted price over last 24h
+      meta:
+        api: Ticker
+        param: p
+        position: 1
+    
+    num_trades_today:
+      dtype: float64
+      ttype: decimal
+      description: number of trades since market opened
+      meta:
+        api: Ticker
+        param: t
+        position: 0
+
+    num_trades_24h:
+      dtype: float64
+      ttype: decimal
+      description: number of trade over past 24h
+      meta:
+        api: Ticker
+        param: t
+        position: 1
+
+    low_today:
+      dtype: float64
+      ttype: decimal
+      description: low today
+      meta:
+        api: Ticker
+        param: l
+        position: 0
+
+    low_24h:
+      dtype: float64
+      ttype: decimal
+      description: low over past 24h
+      meta:
+        api: Ticker
+        param: l
+        position: 1
+
+    high_today:
+      dtype: float64
+      ttype: decimal
+      description: high today
+      meta:
+        api: Ticker
+        param: h
+        position: 0
+
+    high_24h:
+      dtype: float64
+      ttype: decimal
+      description: high over last 24h
+      meta:
+        api: Ticker
+        param: h
+        position: 1
+
+    open_price: 
+      dtype: float64
+      ttype: decimal
+      description: open price
+      meta:
+        api: Ticker
+        param: o
+
+    depth_ratio_50:
+      dtype: float64
+      ttype: decimal
+      description: depth ratio (bid/ask) over 50 price pt
+      meta:
+        api: Depth
+        n_records: 50
+
+
+    depth_ratio_100:
+      dtype: float64
+      ttype: decimal
+      description: depth ratio (bid/ask) over 100 price pt
+      meta:
+        api: Depth
+        n_records: 100     
+
+    depth_ratio_500:  
+      dtype: float64
+      ttype: decimal
+      description: depth ratio (bid/ask) over 500 price pt
+      meta:
+        api: Depth
+        n_records: 500

@@ -1,0 +1,192 @@
+# table
+## column: dtype
+## description
+
+kraken_acc_balance:
+  description: balance per currency
+  columns:
+    period_id:
+      dtype: str
+      ttype: date
+      description: date of snapshot
+      is_index: True 
+    
+    snapshot_ts:
+      dtype: ts
+      ttype: timestamp
+      description: datetime of snapshot
+      is_index: True 
+    
+    currency:
+      dtype: str
+      ttype: text
+      description: currency 
+    
+    balance:
+      dtype: float
+      ttype: decimal
+      description: total balance of given currency
+    
+    hold_trade:
+      dtype: float
+      ttype: decimal
+      description: unavailable balance. balanace on hold in open trade
+
+kraken_trade_balance:
+  description: trade balance in USDC 
+  columns:
+    period_id:
+      dtype: str
+      ttype: date      
+      description: date of snapshot
+      is_index: True
+    
+    snapshot_ts:
+      dtype: ts
+      ttype: timestamp
+      description: datetime of snapshot
+      is_index: True
+    
+    account_balance:
+      dtype: float
+      ttype: decimal
+      description: Equivalent balance (combined balance of all currencies)
+    
+    trade_balance:
+      dtype: float
+      ttype: decimal
+      description: Trade balance (combined balance of all equity currencies)
+    
+    margin:
+      dtype: float
+      ttype: decimal 
+      description: Margin amount of open positions
+    
+    unrealised_net_profit:
+      dtype: float
+      ttype: decimal
+      description: Unrealized net profit/loss of open positions
+    
+    cost:
+      dtype: float
+      ttype: decimal
+      description: Cost basis of open positions
+    
+    valuation:
+      dtype: float
+      ttype: decimal
+      description: Current floating valuation of open positions
+    
+    equity:
+      dtype: float
+      ttype: decimal
+      description: trade balance + unrealized net profit/loss
+    
+    margin_level:
+      dtype: float
+      ttype: decimal
+      description: (equity / initial margin) * 100
+    
+    unexecuted_level:
+      dtype: float
+      ttype: decimal
+      description: "Unexecuted value: Value of unfilled and partially filled orders"
+
+kraken_orders:
+  description: Orders closed and open
+  columns:
+    period_id:
+      dtype: str
+      ttype: date
+      description: date of snapshot
+      is_index: True 
+    
+    snapshot_ts:
+      dtype: ts
+      ttype: timestamp
+      description: datetime of snapshot
+      is_index: True 
+
+    order_id:
+      dtype: str
+      ttype: text
+      description: open order id
+    
+    status:
+      dtype: str
+      ttype: text
+      description: "Possible values: [pending, open, closed, canceled, expired]"
+    
+    opentm:
+      dtype: int64
+      ttype: bigint
+      description: Unix timestamp of when order was placed
+    
+    starttm:
+      dtype: int64
+      ttype: bigint
+      description: Unix timestamp of order start time (or 0 if not set)
+    
+    expiretm: 
+      dtype: int64
+      ttype: bigint
+      description: Unix timestamp of order end time (or 0 if not set)
+    
+    pair:
+      dtype: str
+      ttype: text
+      description: asset pair
+    
+    type:
+      dtype: str
+      ttype: text
+      description: "Possible values: [buy, sell]"
+    
+    ordertype:
+      dtype: str
+      ttype: text
+      description: "Possible values: [market, limit, iceberg, stop-loss, take-profit, stop-loss-limit, take-profit-limit, trailing-stop, trailing-stop-limit, settle-position]"
+    
+    price:
+      dtype: float64
+      ttype: decimal
+      description: primary price
+    
+    price2:
+      dtype: float64
+      ttype: decimal
+      description: Secondary price
+    
+    order_description:
+      dtype: str
+      ttype: text 
+      description: Order description
+    
+    close:
+      dtype: str
+      ttype: text
+      description: Conditional close order description (if conditional close set)
+    
+    vol:
+      dtype: float64
+      ttype: decimal 
+      description: Volume of order (base currency)
+    cost:
+      dtype: float64
+      ttype: decimal 
+      description: Total cost (quote currency unless)
+    
+    fee:
+      dtype: float64
+      ttype: decimal 
+      description: Total fee (quote currency)
+    
+    misc:
+      dtype: str
+      ttype: text
+      description: "Comma delimited list of miscellaneous info: `stopped` triggered by stop price `touched` triggered by touch price `liquidated` liquidation `partial` partial fill `amended` order parameters modified"
+    
+    oflags:
+      dtype: str
+      ttype: text
+      description: "Comma delimited list of order flags `post` post-only order (available when ordertype = limit) `fcib` prefer fee in base currency (default if selling) `fciq` prefer fee in quote currency (default if buying, mutually exclusive with fcib) `nompp` disable market price protection for market orders `viqc` order volume expressed in quote currency. This option is supported only for buy market orders. Also not available on margin orders."

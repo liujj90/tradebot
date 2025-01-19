@@ -38,6 +38,9 @@ def ticker_snapshot():
 if __name__ == "__main__":
     import time
     while True:
-        ticker_snapshot()
+        try:
+            ticker_snapshot()
+        except: 
+            pass
         time.sleep(600) # 10 min interval
         

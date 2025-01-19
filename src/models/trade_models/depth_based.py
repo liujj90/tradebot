@@ -25,9 +25,9 @@ class DepthDecision(TradeDecision):
 
         bar_50, bar_100, bar_500 = self.get_data()
 
-        s =  bar_50 - bar_100
-        m = bar_50 - bar_500
-        l = bar_100 - bar_500
+        s =  bar_50 - bar_100 # short term difference 
+        l = bar_50 - bar_500 # long term difference
+        m = bar_100 - bar_500 # medium term difference
 
         if s > 0: 
             # buy or sell early

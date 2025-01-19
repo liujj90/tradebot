@@ -1,0 +1,5 @@
+API_Private_Key
+API_Public_Key
+
+*.ipynb_checkpoints
+__pycache__

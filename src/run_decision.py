@@ -4,15 +4,16 @@ sys.path.append('.')
 import pandas as pd
 import datetime
 
-from src.models import DepthDecision, PercentileDecision
+from src.models import DepthDecision, PercentileDecision, ClassicDecision
 from src.pipeline import get_pair_info
 
 depth_model = DepthDecision()
 percentile_model = PercentileDecision()
+classic_model = ClassicDecision()
 
 class TradeModel:
     fees = 0.25/100 # 0.25% Fees
-    min_usdc_balance = 100
+    min_usdc_balance = 50
     min_btc_balance = 0.00001
     last_buy_ts = datetime.datetime.now() - datetime.timedelta(days = 1) # initialize 
     last_sell_ts = datetime.datetime.now() - datetime.timedelta(days = 1) 
@@ -41,7 +42,14 @@ class TradeModel:
         to_trade = percentile_model.decide(override_threshold=override_threshold)
         if to_trade: 
             print("Threshold met for trading decision") 
-            buy, sell, hold = depth_model.decide()
+            depth_buy, depth_sell, depth_hold = depth_model.decide()
+            classic_buy, classic_sell, classic_hold = classic_model.decide()
+            print(f"Depth algorithm results: {depth_buy}, {depth_sell}, {depth_hold}")
+            print(f"Classic algorithm results: {classic_buy}, {classic_sell}, {classic_hold}")
+
+            buy = depth_buy or classic_buy
+            sell = depth_sell or classic_sell
+            hold = depth_hold or classic_hold
         
         if hold:
             action = 'hold'
@@ -153,7 +161,7 @@ if __name__ == '__main__':
 
     # run simulation
     while True:
-        model.run(override_threshold=1)
+        model.run(override_threshold=0.6)
         time.sleep(60)
             
 

@@ -3,16 +3,26 @@ sys.path.append('.')
 from src.pipeline import get_private, get_acc_snapshot
 
 from uuid import uuid4
+ 
 
-def execute_trade(
+
+def execute_trade_with_buffer(
         trade_type,
         volume,
         pair,
         price,
         order_type="limit",
         validate=True, # does not submit trade
-        rel_pth = "./"
+        rel_pth = "./",
+        buffer=0.01
     ):
+
+    if trade_type == "buy":
+        price = (1-buffer) * price
+        
+    elif trade_type == "sell":
+        price = (1+buffer) * price
+
     api_data =  dict(
         ordertype = order_type,
         type = trade_type,
@@ -110,13 +120,14 @@ def validate_order(
 
 if __name__=="__main__":
     
-    response = execute_trade(
+    response = execute_trade_with_buffer(
         trade_type = "sell",
         volume = 0.1,
         pair = "XBTUSDC",
         price = 110_000,
         order_type = "limit",
-        validate = False,
-        rel_pth = './'
+        validate = True,
+        rel_pth = './',
+        buffer= 0.01
     )
     print(response.decode())

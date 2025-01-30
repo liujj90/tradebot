@@ -62,10 +62,12 @@ class TradeModel:
         
         if hold:
             action = 'hold'
-        elif buy:
-            action = 'buy'
-        else:
+        elif sell or buy: # tie breaker
+            action = 'hold'
+        elif sell:
             action = 'sell'
+        else:
+            action = 'buy'
 
         return to_trade, action
 

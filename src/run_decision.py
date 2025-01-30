@@ -15,15 +15,12 @@ class TradeModel:
     fees = 0.25/100 # 0.25% Fees
     min_usdc_balance = 50
     min_btc_balance = 0.00001
-    last_buy_ts = datetime.datetime.now() - datetime.timedelta(days = 1) # initialize 
-    last_sell_ts = datetime.datetime.now() - datetime.timedelta(days = 1) 
     
     def __init__(
         self, 
         simulated_btc_bal = 0.0, 
         simulated_usdc_bal = 1000, 
         trade_limit = 0.5, 
-        # limit_target = 0.002, # 0.2% difference with current market
         savefilepath = "/home/jj/workspace/experiment.csv",
         trade_time_threshold = 60 * 60, # 1h
         simulation = True
@@ -33,6 +30,9 @@ class TradeModel:
         self.savefilepath = savefilepath 
         self.trade_time_threshold = trade_time_threshold
         self.simulation = simulation
+        self.last_buy_ts = datetime.datetime.now() - datetime.timedelta(days = 1) # initialize 
+        self.last_sell_ts = datetime.datetime.now() - datetime.timedelta(days = 1) 
+    
 
         if not self.simulation:
             print("""ALERT: SIMULATION IS OFF. REAL TRADES MAY BE SUBMITTED """)
@@ -84,7 +84,6 @@ class TradeModel:
         
         return res
 
-
     def update_balance(self, data):
 
         # format data
@@ -112,7 +111,7 @@ class TradeModel:
             trade_amt = self.trade_limit * self.btc_bal
             trade_price = float(current_market['bid'])
             if self.btc_bal > self.min_btc_balance:
-                if (ts - self.last_sell_ts).seconds > self.trade_time_threshold:
+                if (ts - self.last_sell_ts).total_seconds() > self.trade_time_threshold:
                     self.btc_bal -= trade_amt
                     usdc_amt = trade_amt * trade_price 
                     self.usdc_bal += usdc_amt - usdc_amt * self.fees
@@ -129,7 +128,7 @@ class TradeModel:
             trade_amt = self.trade_limit * self.usdc_bal
             trade_price = float(current_market['ask'])
             if self.usdc_bal > self.min_usdc_balance:
-                if (ts - self.last_buy_ts).seconds > self.trade_time_threshold:
+                if (ts - self.last_buy_ts).total_seconds() > self.trade_time_threshold:
                     self.usdc_bal -= (trade_amt + trade_amt*self.fees)  
                     btc_amt = trade_amt/trade_price
                     self.btc_bal += btc_amt
@@ -158,7 +157,7 @@ class TradeModel:
         # default
         executed = False 
         trade_amt = kwargs.get("volume", 0.005)
-        trade_price = current_market['price']
+        trade_price = float(current_market['price'])
         description = "Not Executed"
         ts = datetime.datetime.now()
 
@@ -166,12 +165,13 @@ class TradeModel:
             description = "decided to hold"
             return trade_amt, trade_price, executed, description
 
-        elif trade_decision == 'sell' and (ts - self.last_sell_ts).seconds <= self.trade_time_threshold:
+        elif trade_decision == 'sell' and (ts - self.last_sell_ts).total_seconds() <= self.trade_time_threshold:
             description = "sell not executed because current time is too close to last sell timestamp"
+            return trade_amt, trade_price, executed, description
         
-        elif trade_decision == 'buy' and (ts - self.last_buy_ts).seconds <= self.trade_time_threshold:
+        elif trade_decision == 'buy' and (ts - self.last_buy_ts).total_seconds() <= self.trade_time_threshold:
             description = "buy not executed because current time is too close to last buy timestamp"
-        
+            return trade_amt, trade_price, executed, description
 
 
         order_details, response = execute_trade_with_buffer(
@@ -180,10 +180,8 @@ class TradeModel:
                 "XBTUSDC",
                 trade_price, # this will be adjusted
                 order_type="limit",
-                # validate=validate, # does not submit trade
                 rel_pth = "./",
                 **kwargs
-                # buffer=buffer # Buffer size 
             )
 
         if isinstance(order_details, str):
@@ -236,7 +234,7 @@ class TradeModel:
 
 if __name__ == '__main__':
     import time
-    model = TradeModel(simulation=False)
+    model = TradeModel(simulation=False) # use live data
 
     options = dict(
         override_threshold = 0.6,

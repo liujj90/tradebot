@@ -9,7 +9,7 @@ from uuid import uuid4
 
 def execute_trade_with_buffer(
         trade_type,
-        volume,
+        trade_amt,
         pair,
         price,
         order_type="limit",
@@ -31,9 +31,9 @@ def execute_trade_with_buffer(
     api_data =  dict(
         ordertype = order_type,
         type = trade_type,
-        volume = volume,
+        volume = trade_amt,
         pair = pair,
-        price = price,
+        price = round(price, 2),
         validate=validate,
         cl_ord_id=str(uuid4())
         )
@@ -57,7 +57,9 @@ def execute_trade_with_buffer(
         try:
             final_response = json.loads(response.decode())
         except: 
+            
             final_response = response
+
 
         return revised_api_data, final_response
 
@@ -78,11 +80,6 @@ def validate_order(
         order, 
         fee = 0.025*100,
         **kwargs):
-        # min_btc_balance=0.0005, 
-        # min_usdc_balance = 75,
-        # max_btc_buy = 0.005,
-        # max_btc_sell = 0.005, 
-        # fee = 0.25/100):
 
     min_btc_balance= kwargs.get("min_btc_balance", 0.0005)
     min_usdc_balance = kwargs.get("min_usdc_balance", 75)

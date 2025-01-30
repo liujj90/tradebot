@@ -5,7 +5,7 @@ import pandas as pd
 import datetime
 
 from src.models import DepthDecision, PercentileDecision, ClassicDecision
-from src.pipeline import get_pair_info, execute_trade_with_buffer
+from src.pipeline import get_pair_info, execute_trade_with_buffer, get_free_balance
 
 depth_model = DepthDecision()
 percentile_model = PercentileDecision()
@@ -20,18 +20,27 @@ class TradeModel:
     
     def __init__(
         self, 
-        btc_bal = 0.0, 
-        usdc_bal = 1000, 
+        simulated_btc_bal = 0.0, 
+        simulated_usdc_bal = 1000, 
         trade_limit = 0.5, 
         # limit_target = 0.002, # 0.2% difference with current market
         savefilepath = "/home/jj/workspace/experiment.csv",
-        trade_time_threshold = 60 * 60 # 1h
+        trade_time_threshold = 60 * 60, # 1h
+        simulation = True
         ):
-        self.btc_bal = btc_bal
-        self.usdc_bal= usdc_bal
+        
         self.trade_limit = trade_limit
         self.savefilepath = savefilepath 
         self.trade_time_threshold = trade_time_threshold
+        self.simulation = simulation
+
+        if not self.simulation:
+            print("""ALERT: SIMULATION IS OFF. REAL TRADES MAY BE SUBMITTED """)
+            self.usdc_bal, self.btc_bal = get_free_balance()
+        else: 
+            print("""SIMULATION IS ON""")
+            self.btc_bal = simulated_btc_bal
+            self.usdc_bal= simulated_usdc_bal
         
 
     def one_decision(self, override_threshold=None):
@@ -91,11 +100,12 @@ class TradeModel:
 
         final_df.to_csv(self.savefilepath, index=None)
 
-    def execute_trade(self, current_market, trade_decision):
+    def execute_simulted_trade(self, current_market, trade_decision):
         
         executed = False 
         trade_amt = None
         trade_price = None
+        description = "Not Executed"
         ts = datetime.datetime.now()
         
         if trade_decision == 'sell': # sell at bid price? 
@@ -136,39 +146,111 @@ class TradeModel:
 
         return trade_amt, trade_price, executed, description
 
-    def run(self, override_threshold=None): # only XBTUSDC support right now
+    def execute_real_trade(self, current_market, trade_decision, **kwargs):
+        ts = datetime.datetime.now()
+        # prep kwargs
+        buffer = kwargs.get("buffer", 0.01)
+        validate = kwargs.get("validate", True)
+
+        if validate == False:
+            print("""ALERT: VALIDATION IS OFF, TRADES WILL BE SUBMITTED """)
+
+        # default
+        executed = False 
+        trade_amt = kwargs.get("volume", 0.005)
+        trade_price = current_market['price']
+        description = "Not Executed"
+        ts = datetime.datetime.now()
+
+        if trade_decision == "hold":
+            description = "decided to hold"
+            return trade_amt, trade_price, executed, description
+
+        elif trade_decision == 'sell' and (ts - self.last_sell_ts).seconds <= self.trade_time_threshold:
+            description = "sell not executed because current time is too close to last sell timestamp"
         
+        elif trade_decision == 'buy' and (ts - self.last_buy_ts).seconds <= self.trade_time_threshold:
+            description = "buy not executed because current time is too close to last buy timestamp"
+        
+
+
+        order_details, response = execute_trade_with_buffer(
+                trade_decision,
+                trade_amt, 
+                "XBTUSDC",
+                trade_price, # this will be adjusted
+                order_type="limit",
+                # validate=validate, # does not submit trade
+                rel_pth = "./",
+                **kwargs
+                # buffer=buffer # Buffer size 
+            )
+
+        if isinstance(order_details, str):
+            description = f"{trade_decision} not executed because min balance not reached"
+
+        else: # trade executed
+            description = response['result']['descr']['order']
+            trade_amt = order_details['volume']
+            trade_price = order_details['price']
+            executed = True
+
+            self.usdc_bal, self.btc_bal = get_free_balance()
+        
+            if trade_decision == 'sell':
+                self.last_sell_ts = ts
+
+            elif trade_decision == 'buy':
+                self.last_buy_ts = ts
+
+        return trade_amt, trade_price, executed, description
+
+
+    def run(self, **kwargs): # only XBTUSDC support right now
+
+        override_threshold=kwargs.get("override_threshold", 0.8), 
+        print(override_threshold)
         to_trade, action = self.one_decision(override_threshold=override_threshold)
         current_market = self.get_current_market()
-        if to_trade:
+        if to_trade and self.simulation:
             print(f"Trading. Action: {action}")
-            trade_amt, trade_price, executed, description = self.execute_trade(current_market, action)
-            current_market['time_now'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            current_market['trade_executed'] = executed
-            current_market['trade_amt'] = trade_amt
-            current_market['trade_price'] = trade_price
-            current_market['usdc_bal'] = self.usdc_bal
-            current_market['btc_bal'] = self.btc_bal
-            current_market['description'] = description
-            self.update_balance(current_market)
-            print(f"balance updated with data {current_market}") 
+            trade_amt, trade_price, executed, description = self.execute_simulted_trade(current_market, action)
+            
+        elif to_trade and not self.simulation:
+            print(f"Trading. Action: {action}")
+            trade_amt, trade_price, executed, description = self.execute_real_trade(current_market, action, **kwargs) 
         else:
             print(f"No trade due to threshold decision not being met. pchange < {override_threshold or 1.5}")
+            return None
+
+        current_market['time_now'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        current_market['trade_executed'] = executed
+        current_market['trade_amt'] = trade_amt
+        current_market['trade_price'] = trade_price
+        current_market['usdc_bal'] = self.usdc_bal
+        current_market['btc_bal'] = self.btc_bal
+        current_market['description'] = description
+        self.update_balance(current_market)
+        print(f"balance updated with data {current_market}") 
+
 
 if __name__ == '__main__':
     import time
-    model = TradeModel()
+    model = TradeModel(simulation=False)
+
+    options = dict(
+        override_threshold = 0.6,
+        buffer= 0.005,
+        validate = True, # False to submit trades
+        min_btc_balance= 0.0005,
+        min_usdc_balance = 75,
+        max_btc_buy = 0.005,
+        max_btc_sell = 0.005,
+        volume = 0.0005
+    )
 
     # run simulation
     while True:
-        model.run(override_threshold=0.6)
+        model.run(**options)
         time.sleep(60)
             
-
-
-        
-                
-
-        
-    
-    

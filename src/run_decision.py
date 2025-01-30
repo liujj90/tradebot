@@ -5,7 +5,7 @@ import pandas as pd
 import datetime
 
 from src.models import DepthDecision, PercentileDecision, ClassicDecision
-from src.pipeline import get_pair_info
+from src.pipeline import get_pair_info, execute_trade_with_buffer
 
 depth_model = DepthDecision()
 percentile_model = PercentileDecision()

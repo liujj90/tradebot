@@ -47,13 +47,15 @@ def execute_trade_with_buffer(
 
         response = get_private(api_method="AddOrder", api_data = api_postdata, rel_pth=rel_pth)
 
-        return response
+        return response.decode()
 
 
 def validate_order(
         order, 
         min_btc_balance=0.0005, 
-        min_usdc_balance = 75, 
+        min_usdc_balance = 75,
+        max_btc_buy = 0.005,
+        max_btc_sell = 0.005, 
         fee = 0.25/100):
 
     # This only looks at btc usdc
@@ -80,9 +82,9 @@ def validate_order(
         after_order_usdc = free_usdc_bal + order_usdc - fee*order_usdc
         after_order_btc =  free_btc_bal - order['volume']
 
-        if after_order_btc <= min_btc_balance:
+        if (after_order_btc <= min_btc_balance) or (order['volume'] > max_btc_sell):
             diff = free_btc_bal - min_btc_balance
-            adjusted_volume = round(float(diff), 10)
+            adjusted_volume = min(round(float(diff), 10), max_btc_sell)
             print(adjusted_volume)
             # change volume
             print(f"original sell order of {order['volume']} btc too high. Adjusting Sell order to: {adjusted_volume}")
@@ -100,9 +102,9 @@ def validate_order(
         after_order_usdc = free_usdc_bal - order_usdc - fee*order_usdc
         after_order_btc =  free_btc_bal + order['volume']
 
-        if after_order_usdc <= min_usdc_balance:
+        if (after_order_usdc <= min_usdc_balance) or (order['volume'] > max_btc_buy):
             diff = free_usdc_bal - min_usdc_balance
-            adjusted_volume = round(float(diff/order['price']), 10)
+            adjusted_volume = min(round(float(diff/order['price']), 10), max_btc_buy)
             print(adjusted_volume)
             # change volume
             print(f"original buy order of {order['volume']} btc too high. Adjusting Buy order to: {adjusted_volume}")
@@ -128,6 +130,6 @@ if __name__=="__main__":
         order_type = "limit",
         validate = True,
         rel_pth = './',
-        buffer= 0.01
+        buffer= 0.005
     )
-    print(response.decode())
+    print(response)

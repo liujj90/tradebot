@@ -92,13 +92,6 @@ def validate_order(
 
     # get free balance  
     free_usdc_bal, free_btc_bal = get_free_balance()
-    
-    # bal_df, _, _ = get_acc_snapshot()
-    # bal_df['balance'] = bal_df['balance'].astype(float)
-    # bal_df['hold_trade'] = bal_df['hold_trade'].astype(float)
-    # bal_df['free_balance'] = bal_df['balance'] - bal_df['hold_trade']
-    # free_usdc_bal = bal_df.loc[bal_df['currency'] == "USDC", 'free_balance'].values[0]
-    # free_btc_bal = bal_df.loc[bal_df['currency'] == "XXBT", 'free_balance'].values[0]
 
     # check if it can accomodate this order
     # check if order meets min balance, else adjust order

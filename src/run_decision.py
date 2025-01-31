@@ -60,9 +60,9 @@ class TradeModel:
             sell = depth_sell or classic_sell
             hold = depth_hold or classic_hold
         
-        if hold:
+        if hold: #any hold -> hold
             action = 'hold'
-        elif sell or buy: # tie breaker
+        elif sell or buy: # split decision -> hold
             action = 'hold'
         elif sell:
             action = 'sell'
@@ -208,7 +208,7 @@ class TradeModel:
 
     def run(self, **kwargs): # only XBTUSDC support right now
 
-        override_threshold=kwargs.get("override_threshold", 0.8), 
+        override_threshold=kwargs.get("override_threshold", 0.8)
         print(override_threshold)
         to_trade, action = self.one_decision(override_threshold=override_threshold)
         current_market = self.get_current_market()
@@ -222,7 +222,7 @@ class TradeModel:
         else:
             print(f"No trade due to threshold decision not being met. pchange < {override_threshold or 1.5}")
             return None
-
+        self.usdc_bal, self.btc_bal = get_free_balance() # update balances 
         current_market['time_now'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         current_market['trade_executed'] = executed
         current_market['trade_amt'] = trade_amt

@@ -152,16 +152,22 @@ class TradeModel:
         # prep kwargs
         buffer = kwargs.get("buffer", 0.01)
         validate = kwargs.get("validate", True)
+        max_trade_usdc = kwargs.get("max_trade_usdc", 100)
+        trade_amt = kwargs.get("volume", 0.005)
+
+        print(f"Maximum Trade: {max_trade_usdc}" )
 
         if validate == False:
             print("""ALERT: VALIDATION IS OFF, TRADES WILL BE SUBMITTED """)
 
         # default
         executed = False 
-        trade_amt = kwargs.get("volume", 0.005)
+        
         trade_price = float(current_market['price'])
         description = "Not Executed"
         ts = datetime.datetime.now()
+
+        trade_amt = min(trade_amt, trade_price*max_trade_usdc)
 
         if trade_decision == "hold":
             description = "decided to hold"
@@ -246,7 +252,8 @@ if __name__ == '__main__':
         min_usdc_balance = 75,
         max_btc_buy = 0.005,
         max_btc_sell = 0.005,
-        volume = 0.0005
+        volume = 0.0005,
+        max_trade_usdc = 110
     )
 
     # run simulation

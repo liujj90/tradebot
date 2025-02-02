@@ -42,5 +42,5 @@ if __name__ == "__main__":
             ticker_snapshot()
         except: 
             pass
-        time.sleep(600) # 10 min interval
+        time.sleep(300) # 5 min interval
         

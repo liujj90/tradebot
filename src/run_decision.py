@@ -62,7 +62,7 @@ class TradeModel:
         
         if hold: #any hold -> hold
             action = 'hold'
-        elif sell or buy: # split decision -> hold
+        elif sell and buy: # split decision -> hold
             action = 'hold'
         elif sell:
             action = 'sell'
@@ -194,6 +194,8 @@ class TradeModel:
 
         if isinstance(order_details, str):
             description = f"{trade_decision} not executed because min balance not reached"
+        elif isinstance(response, str):
+            description = f"{trade_decision} not executed because {response}"
 
         else: # trade executed
             description = response['result']['descr']['order']
@@ -249,7 +251,7 @@ if __name__ == '__main__':
         buffer= 0.005,
         validate = True, # False to submit trades
         min_btc_balance= 0.0005,
-        min_usdc_balance = 75,
+        min_usdc_balance = 350,
         max_btc_buy = 0.005,
         max_btc_sell = 0.005,
         volume = 0.0005,
